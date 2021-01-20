@@ -1,0 +1,21 @@
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/5.7/phpunit.xsd"
+         backupGlobals="false"
+         backupStaticAttributes="false"
+         colors="true"
+         convertErrorsToExceptions="true"
+         convertNoticesToExceptions="true"
+         convertWarningsToExceptions="true"
+         processIsolation="false"
+         stopOnFailure="false">
+    <php>
+        <!--Path to the autoload file that should be used. Use a composer autoloader by default-->
+        <const name="AUTOLOAD_PATH" value="./vendor/autoload.php"/>
+    </php>
+
+    <testsuites>
+        <testsuite name="Functional Tests">
+            <directory>./tests/functional</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>
