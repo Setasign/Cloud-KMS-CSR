@@ -3,6 +3,7 @@
 namespace setasign\CloudKmsCsr\tests\functional\GoogleCloudKMS;
 
 use PHPUnit\Framework\TestCase;
+use setasign\CloudKmsCsr\Certificate;
 use setasign\CloudKmsCsr\GoogleCloudKMS\Updater;
 use setasign\CloudKmsCsr\Csr;
 
@@ -47,5 +48,29 @@ class UpdaterTest extends TestCase
 //        $openSslPath = 'C:\\OpenSSL\\Win64-1.1.1i\\bin\\';
 //        $cmd = $openSslPath . 'openssl req -in ' . escapeshellarg($tmpFile). ' -noout -verify';
 //        shell_exec($cmd);
+    }
+
+    /**
+     * @param $keyId
+     * @param $signatureAlgorithm
+     * @param string $region
+     * @param string $version
+     * @throws \SetaPDF_Signer_Asn1_Exception
+     * @throws \setasign\CloudKmsCsr\Exception
+     * @dataProvider updaterProvider
+     */
+    public function testCertificateUpdate($keyId)
+    {
+        $projectId = 'kms-test-and-development';
+        $locationId = 'europe-west3';
+        $keyRingId = 'Demo-Key-Ring-1';
+        $versionId = '1';
+
+        $updater = new Updater($projectId, $locationId, $keyRingId, $keyId, $versionId);
+
+        $certificate = Certificate::create(['commonName' => 'Tester']);
+        $certificate->update($updater);
+
+        $this->assertTrue($certificate->verify());
     }
 }

@@ -5,6 +5,7 @@ namespace setasign\CloudKmsCsr\tests\functional\AwsKMS;
 use Aws\Kms\KmsClient;
 use PHPUnit\Framework\TestCase;
 use setasign\CloudKmsCsr\AwsKMS\Updater;
+use setasign\CloudKmsCsr\Certificate;
 use setasign\CloudKmsCsr\Csr;
 
 class UpdaterTest extends TestCase
@@ -72,6 +73,32 @@ class UpdaterTest extends TestCase
 //        $openSslPath = 'C:\\OpenSSL\\Win64-1.1.1i\\bin\\';
 //        $cmd = $openSslPath . 'openssl req -in ' . escapeshellarg($tmpFile). ' -noout -verify';
 //        shell_exec($cmd);
+    }
+
+    /**
+     * @param $keyId
+     * @param $signatureAlgorithm
+     * @param string $region
+     * @param string $version
+     * @throws \SetaPDF_Signer_Asn1_Exception
+     * @throws \setasign\CloudKmsCsr\Exception
+     * @dataProvider updaterProvider
+     */
+    public function testCertificateUpdate($keyId, $signatureAlgorithm, $region = 'eu-central-1', $version = 'latest')
+    {
+        $kmsClient = new KmsClient([
+            'region' => $region,
+            'version' => $version,
+            'http' => []
+        ]);
+
+        $updater = new Updater($keyId, $kmsClient);
+        $updater->setSignatureAlgorithm($signatureAlgorithm);
+
+        $certificate = Certificate::create(['commonName' => 'Tester']);
+        $certificate->update($updater);
+
+        $this->assertTrue($certificate->verify());
     }
 
     public function updateWithInvalidAlgorithmProvider()

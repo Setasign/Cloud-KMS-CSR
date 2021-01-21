@@ -10,6 +10,8 @@ use SetaPDF_Signer_Asn1_Oid as Oid;
 
 class Csr
 {
+    use HelperTrait;
+
     /**
      * Flag to disable phpseclib usage during verification.
      *
@@ -198,83 +200,12 @@ class Csr
      */
     public function update(UpdaterInterface $updater)
     {
-        $digest = $updater->getDigest();
-        $algorithm = $updater->getAlgorithm();
+        $this->updateSubjectPublicKeyInfo($updater);
 
-        // get the public key
-        $publicKey = Asn1Element::parse(Pem::decode($updater->getPublicKey()));
-        // and update the subject public key with it
-        $subjectPublicKeyInfo = $this->getSubjectPublicKeyInfo();
-        $subjectPublicKeyInfo->removeChild($subjectPublicKeyInfo->getChild(0));
-        $subjectPublicKeyInfo->setChildren($publicKey->getChildren());
-
-        $pubKeyInfoAlgorithmIdentifier = $this->getSubjectPublicKeyInfoAlgorithmIdentifier();
-
-        if ($algorithm === Digest::RSA_PSS_ALGORITHM) {
-            $saltLength = $updater->getPssSaltLength();
-
-            $signatureAlgorithmIdentifierAlgorithm = new Asn1Element(
-                Asn1Element::OBJECT_IDENTIFIER,
-                Oid::encode('1.2.840.113549.1.1.10')
-            );
-            $signatureAlgorithmIdentifierParameter = new Asn1Element(
-                Asn1Element::SEQUENCE | Asn1Element::IS_CONSTRUCTED, '',
-                [
-                    new Asn1Element(
-                        Asn1Element::TAG_CLASS_CONTEXT_SPECIFIC | Asn1Element::IS_CONSTRUCTED, '',
-                        [
-                            new Asn1Element(
-                                Asn1Element::SEQUENCE | Asn1Element::IS_CONSTRUCTED, '',
-                                [
-                                    new Asn1Element(
-                                        Asn1Element::OBJECT_IDENTIFIER,
-                                        Oid::encode(Digest::getOid($digest))
-                                    ),
-                                    new Asn1Element(Asn1Element::NULL)
-                                ]
-                            )
-                        ]
-                    ),
-                    new Asn1Element(
-                        Asn1Element::TAG_CLASS_CONTEXT_SPECIFIC | Asn1Element::IS_CONSTRUCTED | "\x01", '',
-                        [
-                            new Asn1Element(
-                                Asn1Element::SEQUENCE | Asn1Element::IS_CONSTRUCTED, '',
-                                [
-                                    new Asn1Element(
-                                        Asn1Element::OBJECT_IDENTIFIER,
-                                        Oid::encode('1.2.840.113549.1.1.8')
-                                    ),
-                                    new Asn1Element(
-                                        Asn1Element::SEQUENCE | Asn1Element::IS_CONSTRUCTED, '',
-                                        [
-                                            new Asn1Element(
-                                                Asn1Element::OBJECT_IDENTIFIER,
-                                                Oid::encode(Digest::getOid($digest))
-                                            ),
-                                            new Asn1Element(Asn1Element::NULL)
-                                        ]
-                                    )
-                                ]
-                            )
-                        ]
-                    ),
-                    new Asn1Element(
-                        Asn1Element::TAG_CLASS_CONTEXT_SPECIFIC | Asn1Element::IS_CONSTRUCTED | "\x02", '',
-                        [
-                            new Asn1Element(Asn1Element::INTEGER, \chr($saltLength))
-                        ]
-                    )
-                ]
-            );
-        } else {
-            $signatureAlgorithmIdentifierAlgorithm = new Asn1Element(
-                Asn1Element::OBJECT_IDENTIFIER,
-                Oid::encode(Digest::getOid($digest, $pubKeyInfoAlgorithmIdentifier[0]))
-            );
-
-            $signatureAlgorithmIdentifierParameter = $pubKeyInfoAlgorithmIdentifier[1];
-        }
+        list(
+            $signatureAlgorithmIdentifierAlgorithm,
+            $signatureAlgorithmIdentifierParameter
+        ) = $this->createSignatureAlgorithmIdentifier($updater);
 
         $signatureAlgorithmIdentifier = $this->_csr->getChild(1);
         while ($signatureAlgorithmIdentifier->getChildCount() > 0) {
