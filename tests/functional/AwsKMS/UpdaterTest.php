@@ -51,7 +51,7 @@ class UpdaterTest extends TestCase
      * @throws \setasign\CloudKmsCsr\Exception
      * @dataProvider updaterProvider
      */
-    public function testUpdater($keyId, $signatureAlgorithm, $region = 'eu-central-1', $version = 'latest')
+    public function testCsrUpdate($keyId, $signatureAlgorithm, $region = 'eu-central-1', $version = 'latest')
     {
         $kmsClient = new KmsClient([
             'region' => $region,
@@ -106,8 +106,6 @@ class UpdaterTest extends TestCase
 
         $updater = new Updater($keyId, $kmsClient);
         $updater->setSignatureAlgorithm($signatureAlgorithm);
-
-        $csr = Csr::create(['commonName' => 'Tester']);
-        $csr->update($updater);
+        $updater->sign('anything');
     }
 }

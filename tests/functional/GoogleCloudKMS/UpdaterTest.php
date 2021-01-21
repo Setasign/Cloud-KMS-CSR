@@ -28,7 +28,7 @@ class UpdaterTest extends TestCase
      * @throws \setasign\CloudKmsCsr\Exception
      * @dataProvider updaterProvider
      */
-    public function testUpdater($keyId)
+    public function testCsrUpdate($keyId)
     {
         $projectId = 'kms-test-and-development';
         $locationId = 'europe-west3';
