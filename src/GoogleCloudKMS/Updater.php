@@ -2,9 +2,9 @@
 
 namespace setasign\CloudKmsCsr\GoogleCloudKMS;
 
-use Google\Cloud\Kms\V1\CryptoKeyVersion;
 use setasign\CloudKmsCsr\Exception;
 use setasign\CloudKmsCsr\UpdaterInterface;
+use Google\ApiCore\ApiException;
 use Google\Cloud\Kms\V1\KeyManagementServiceClient;
 use Google\Cloud\Kms\V1\CryptoKeyVersion\CryptoKeyVersionAlgorithm;
 use Google\Cloud\Kms\V1\Digest as KmsDigest;
@@ -23,15 +23,18 @@ class Updater implements UpdaterInterface
     protected $keyVersionName;
 
     /**
-     * @var CryptoKeyVersion
-     */
-    protected $keyInformation;
-
-    /**
      * @var string
      */
     protected $publicKey;
 
+    /**
+     * @param string $projectId
+     * @param string $locationId
+     * @param string $keyRingId
+     * @param string $keyId
+     * @param string $versionId
+     * @param KeyManagementServiceClient|null $client
+     */
     public function __construct(
         $projectId,
         $locationId,
@@ -52,9 +55,14 @@ class Updater implements UpdaterInterface
         $this->kmsClient = $client !== null ? $client : new KeyManagementServiceClient();
     }
 
+    /**
+     * @inheritDoc
+     * @throws Exception
+     * @throws ApiException
+     */
     public function getDigest()
     {
-        $algorithm = $this->loadPublicKey()->getAlgorithm();
+        $algorithm = $this->ensurePublicKey()->getAlgorithm();
         switch ($algorithm) {
             case CryptoKeyVersionAlgorithm::RSA_SIGN_PKCS1_2048_SHA256:
             case CryptoKeyVersionAlgorithm::RSA_SIGN_PKCS1_3072_SHA256:
@@ -74,9 +82,14 @@ class Updater implements UpdaterInterface
         }
     }
 
+    /**
+     * @inheritDoc
+     * @throws Exception
+     * @throws ApiException
+     */
     public function getAlgorithm()
     {
-        $algorithm = $this->loadPublicKey()->getAlgorithm();
+        $algorithm = $this->ensurePublicKey()->getAlgorithm();
         switch ($algorithm) {
             case CryptoKeyVersionAlgorithm::RSA_SIGN_PKCS1_2048_SHA256:
             case CryptoKeyVersionAlgorithm::RSA_SIGN_PKCS1_3072_SHA256:
@@ -96,12 +109,16 @@ class Updater implements UpdaterInterface
         }
     }
 
+    /**
+     * @inheritDoc
+     * @see https://cloud.google.com/kms/docs/algorithms#rsa_signing_algorithms
+     * @throws ApiException
+     */
     public function getPssSaltLength()
     {
-        // See https://cloud.google.com/kms/docs/algorithms#rsa_signing_algorithms
         // "For Probabilistic Signature Scheme (PSS), the salt length used is equal to the length of the digest
         // algorithm. For example, RSA_SIGN_PSS_2048_SHA256 will use PSS with a salt length of 256 bits."
-        $algorithm = $this->loadPublicKey()->getAlgorithm();
+        $algorithm = $this->ensurePublicKey()->getAlgorithm();
         switch ($algorithm) {
             case CryptoKeyVersionAlgorithm::RSA_SIGN_PSS_2048_SHA256:
             case CryptoKeyVersionAlgorithm::RSA_SIGN_PSS_3072_SHA256:
@@ -114,7 +131,13 @@ class Updater implements UpdaterInterface
         }
     }
 
-    protected function loadPublicKey()
+    /**
+     * Ensures that the public key and related information are loaded and returned.
+     *
+     * @return \Google\Cloud\Kms\V1\PublicKey
+     * @throws ApiException
+     */
+    protected function ensurePublicKey()
     {
         if ($this->publicKey === null) {
             $this->publicKey = $this->kmsClient->getPublicKey($this->keyVersionName);
@@ -123,15 +146,23 @@ class Updater implements UpdaterInterface
         return $this->publicKey;
     }
 
+    /**
+     * @inheritDoc
+     * @throws ApiException
+     */
     public function getPublicKey()
     {
-        return $this->loadPublicKey()->getPem();
+        return $this->ensurePublicKey()->getPem();
     }
 
+    /**
+     * @inheritDoc
+     * @throws ApiException|Exception
+     */
     public function sign($data)
     {
         $digest = $this->getDigest();
-        $hash = hash($digest, $data, true);
+        $hash = \hash($digest, $data, true);
         $digestValue = new KmsDigest();
         switch ($digest) {
             case Digest::SHA_256:

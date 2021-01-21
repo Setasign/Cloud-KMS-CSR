@@ -2,11 +2,11 @@
 
 namespace setasign\CloudKmsCsr\AwsKMS;
 
+use Aws\Kms\KmsClient;
 use setasign\CloudKmsCsr\Exception;
 use setasign\CloudKmsCsr\UpdaterInterface;
-use Aws\Kms\KmsClient;
-use \SetaPDF_Signer_Digest as Digest;
-use \SetaPDF_Signer_Pem as Pem;
+use SetaPDF_Signer_Digest as Digest;
+use SetaPDF_Signer_Pem as Pem;
 
 class Updater implements UpdaterInterface
 {
@@ -30,6 +30,10 @@ class Updater implements UpdaterInterface
      */
     protected $publicKey;
 
+    /**
+     * @param string $keyId
+     * @param KmsClient $kmsClient
+     */
     public function __construct($keyId, KmsClient $kmsClient)
     {
         $this->keyId = $keyId;
@@ -37,12 +41,14 @@ class Updater implements UpdaterInterface
     }
 
     /**
+     * Set the signature algorithm to use with the stored key.
+     *
      * @see https://cloud.google.com/kms/docs/reference/rest/v1/CryptoKeyVersionAlgorithm
      * @param string $signatureAlgorithm
      */
     public function setSignatureAlgorithm($signatureAlgorithm)
     {
-        $publicKey = $this->loadPublicKey();
+        $publicKey = $this->ensurePublicKey();
         if (!in_array($signatureAlgorithm, $publicKey->get('SigningAlgorithms'), true)) {
             throw new \InvalidArgumentException(
                 \sprintf('Signature algorithm "%s" is not supported by key.', $signatureAlgorithm)
@@ -53,7 +59,10 @@ class Updater implements UpdaterInterface
     }
 
     /**
-     * @return string|null
+     * Get the signature algorithm to use with the stored key.
+     *
+     * @see https://cloud.google.com/kms/docs/reference/rest/v1/CryptoKeyVersionAlgorithm
+     * @return string
      */
     public function getSignatureAlgorithm()
     {
@@ -64,6 +73,10 @@ class Updater implements UpdaterInterface
         return $this->signatureAlgorithm;
     }
 
+    /**
+     * @inheritDoc
+     * @throws Exception
+     */
     public function getDigest()
     {
         $algorithm = $this->getSignatureAlgorithm();
@@ -85,6 +98,10 @@ class Updater implements UpdaterInterface
         }
     }
 
+    /**
+     * @inheritDoc
+     * @throws Exception
+     */
     public function getAlgorithm()
     {
         $algorithm = $this->getSignatureAlgorithm();
@@ -106,9 +123,12 @@ class Updater implements UpdaterInterface
         }
     }
 
+    /**
+     * @inheritDoc
+     * @see https://docs.aws.amazon.com/kms/latest/developerguide/symm-asymm-choose.html
+     */
     public function getPssSaltLength()
     {
-        // See https://docs.aws.amazon.com/kms/latest/developerguide/symm-asymm-choose.html
         // E.g.: "PKCS #1 v2.2, Section 8.1, RSA signature with PSS padding using SHA-256 for both the message
         // digest and the MGF1 mask generation function along with a 256-bit salt"
         $algorithm = $this->getSignatureAlgorithm();
@@ -120,11 +140,16 @@ class Updater implements UpdaterInterface
             case 'RSASSA_PSS_SHA_512':
                 return 512 / 8;
             default:
-                throw new \BadMethodCallException('The algorithm does not support PSS padding.');
+                throw new \BadMethodCallException('The key does not support PSS padding.');
         }
     }
 
-    protected function loadPublicKey()
+    /**
+     * Ensures that the public key and related information are loaded and returned.
+     *
+     * @return \Aws\Result
+     */
+    public function ensurePublicKey()
     {
         if ($this->publicKey === null) {
             $this->publicKey = $this->kmsClient->getPublicKey([
@@ -135,17 +160,24 @@ class Updater implements UpdaterInterface
         return $this->publicKey;
     }
 
+    /**
+     * @inheritDoc
+     */
     public function getPublicKey()
     {
-        return Pem::encode($this->loadPublicKey()->get('PublicKey'), 'PUBLIC KEY');
+        return Pem::encode($this->ensurePublicKey()->get('PublicKey'), 'PUBLIC KEY');
     }
 
+    /**
+     * @inheritDoc
+     * @throws Exception
+     */
     public function sign($data)
     {
         $result = $this->kmsClient->sign([
             'KeyId' => $this->keyId,
             'Message' => hash($this->getDigest(), $data, true),
-            'MessageType' => 'DIGEST', // RAW|DIGEST
+            'MessageType' => 'DIGEST',
             'SigningAlgorithm' => $this->getSignatureAlgorithm()
         ]);
 

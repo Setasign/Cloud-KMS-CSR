@@ -2,18 +2,39 @@
 
 namespace setasign\CloudKmsCsr;
 
-use \SetaPDF_Signer_Pem as Pem;
-use \SetaPDF_Signer_X509_Format as Format;
-use \SetaPDF_Signer_Asn1_Element as Asn1Element;
-use \SetaPDF_Signer_Digest as Digest;
-use \SetaPDF_Signer_Asn1_Oid as Oid;
+use SetaPDF_Signer_Pem as Pem;
+use SetaPDF_Signer_X509_Format as Format;
+use SetaPDF_Signer_Asn1_Element as Asn1Element;
+use SetaPDF_Signer_Digest as Digest;
+use SetaPDF_Signer_Asn1_Oid as Oid;
 
 class Csr
 {
+    /**
+     * Flag to disable phpseclib usage during verification.
+     *
+     * @var bool
+     */
     public static $usePhpseclibForRsaPss = true;
 
+    /**
+     * @var Asn1Element
+     */
     protected $_csr;
 
+    /**
+     * Creates a CSR instance by creating a brand new CSR with the use of OpenSSL functions.
+     *
+     * This method uses OpenSSL functions to creates dummy keys and creates a CSR.
+     * It uses an empty openssl.cfg file if none is passed in the $configargs parameter.
+     *
+     * @see https://www.php.net/manual/de/function.openssl-csr-new
+     * @param array $dn
+     * @param array $configargs
+     * @param array|null $extraattribs
+     * @return Csr
+     * @throws \SetaPDF_Signer_Asn1_Exception
+     */
     public static function create(array $dn, $configargs = [], array $extraattribs = null)
     {
         $privkey = openssl_pkey_new();
@@ -27,6 +48,12 @@ class Csr
         return new self($csrString);
     }
 
+    /**
+     * Csr constructor.
+     *
+     * @param string $csr
+     * @throws \SetaPDF_Signer_Asn1_Exception
+     */
     public function __construct($csr)
     {
         if (\strpos($csr, '-----BEGIN CERTIFICATE REQUEST-----') === false) {
@@ -39,11 +66,30 @@ class Csr
 
         $label = 'CERTIFICATE REQUEST';
         $csr = Pem::decode($csr, $label);
-        $this->_csr = Asn1Element::parse($csr);
 
-        // TODO: Validate some elements
+        try {
+            $_csr = Asn1Element::parse($csr);
+        } catch (\SetaPDF_Signer_Asn1_Exception $e) {
+            throw new \InvalidArgumentException('CSR is not a valid ASN.1 structure.', 0, $e);
+        }
+
+        if ($_csr->getIdent() !== (Asn1Element::IS_CONSTRUCTED | Asn1Element::SEQUENCE) ) {
+            throw new \InvalidArgumentException('Invalid data type in CSR data structure (expected SEQUENCE).');
+        }
+
+        if ($_csr->getChildCount() !== 3) {
+            throw new \InvalidArgumentException('Invalid element count in CSR data structure.');
+        }
+
+        $this->_csr = $_csr;
     }
 
+    /**
+     * Get the CSR encoded as DER or PEM.
+     *
+     * @param string $format
+     * @return string
+     */
     public function get($format = Format::PEM)
     {
         switch (strtolower($format)) {
@@ -56,6 +102,12 @@ class Csr
         }
     }
 
+    /**
+     * Get the signature algorithm and parameter.
+     *
+     * @return array The first value holds the OID of the algorithm. The second value is the ASN.1 structure of the
+     *               parameters.
+     */
     public function getSignatureAlgorithm()
     {
         $signatureAlgorithm = $this->_csr->getChild(1);
@@ -67,6 +119,12 @@ class Csr
         ];
     }
 
+    /**
+     * Get the signature value.
+     *
+     * @param bool $hex
+     * @return string
+     */
     public function getSignatureValue($hex = true)
     {
         $signatureValue = $this->_csr->getChild(2)->getValue();
@@ -79,6 +137,11 @@ class Csr
         return $signatureValue;
     }
 
+    /**
+     * Get the signed data.
+     *
+     * @return string
+     */
     public function getSignedData()
     {
         return (string)$this->_csr->getChild(0);
@@ -103,6 +166,12 @@ class Csr
         return $subjectPublicKeyInfo;
     }
 
+    /**
+     * Get the subject public key info algorithm identifier.
+     *
+     * @return array First entry is the OID of the identifier. The second entry are the raw parameters as ASN.1 structures.
+     * @throws Exception
+     */
     public function getSubjectPublicKeyInfoAlgorithmIdentifier()
     {
         $subjectPublicKeyInfo = $this->getSubjectPublicKeyInfo();
@@ -120,6 +189,13 @@ class Csr
         ];
     }
 
+    /**
+     * Update the CSR by the passed Updater instance.
+     *
+     * @param UpdaterInterface $updater
+     * @throws Exception
+     * @throws \SetaPDF_Signer_Asn1_Exception
+     */
     public function update(UpdaterInterface $updater)
     {
         $digest = $updater->getDigest();
@@ -214,7 +290,7 @@ class Csr
     }
 
     /**
-     * Verify the signed object.
+     * Verify the CSR.
      *
      * @return bool
      * @throws \SetaPDF_Signer_Asn1_Exception
