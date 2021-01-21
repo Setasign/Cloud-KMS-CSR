@@ -1,4 +1,4 @@
-# Certificate signing request and self-signed certificate generator/updater for cloud KMS (Key Management Systems)
+# Certificate signing request and self-signed certificate generator/updater for cloud Key Management Systems
 
 This project offers some PHP classes to use keys stored in 
 [Amazom KMS](https://aws.amazon.com/kms/) or 
@@ -227,7 +227,7 @@ use Aws\Kms\KmsClient;
 use setasign\CloudKmsCsr\Csr;
 use setasign\CloudKmsCsr\AwsKMS;
 
-require_once '../../vendor/autoload.php';
+require_once 'vendor/autoload.php';
 
 $region = '<REGION>';
 $version = '<VERSION>';
