@@ -1,7 +1,7 @@
 # Certificate signing request and self-signed certificate generator/updater for cloud Key Management Systems
 
 This project offers some PHP classes to use keys stored in 
-[Amazom KMS](https://aws.amazon.com/kms/) or 
+[Amazon KMS](https://aws.amazon.com/kms/) or 
 [Google Cloud KMS](https://cloud.google.com/security-key-management) to create
 certificate signing request (CSRs) and self-signed certificates (for testing purpose).
 
