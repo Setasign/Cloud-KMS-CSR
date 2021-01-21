@@ -1,7 +1,7 @@
 {
     "name": "setasign/cloud-kms-csr",
     "homepage": "https://github.com/Setasign/Cloud-KMS-CSR",
-    "description": "Tools to create and update CSRs or self-signed certificates with keys from cloud key management systems (AWS KMS and Google Cloud KMS)",
+    "description": "Tools to create and update certificate signing requests (CSRs) and self-signed certificates with keys from cloud key management systems (AWS KMS and Google Cloud KMS)",
     "type": "library",
     "keywords": [
         "csr",
