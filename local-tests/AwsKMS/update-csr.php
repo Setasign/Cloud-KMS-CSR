@@ -13,8 +13,7 @@ $signatureAlgorithm = 'RSASSA_PSS_SHA_512';
 
 $kmsClient = new KmsClient([
     'region' => $region,
-    'version' => $version,
-    'http' => []
+    'version' => $version
 ]);
 
 $updater = new AwsKms\Updater($keyId, $kmsClient);

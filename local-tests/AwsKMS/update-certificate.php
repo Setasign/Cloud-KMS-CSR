@@ -9,12 +9,11 @@ require_once '../../vendor/autoload.php';
 $region = 'eu-central-1';
 $version = 'latest';
 $keyId = '3d444f18-0034-4c7d-8215-53dc176ee0bc';
-$signatureAlgorithm = 'RSASSA_PSS_SHA_512';
+$signatureAlgorithm = 'RSASSA_PKCS1_V1_5_SHA_512';
 
 $kmsClient = new KmsClient([
     'region' => $region,
-    'version' => $version,
-    'http' => []
+    'version' => $version
 ]);
 
 $updater = new AwsKms\Updater($keyId, $kmsClient);
