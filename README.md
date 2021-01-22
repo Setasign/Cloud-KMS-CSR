@@ -62,7 +62,7 @@ throughout.
 
 ## How it works
 
-We implemented two classes representing a CSR and a X509 certificate instance.
+We implemented two classes representing a CSR and a X.509 certificate instance.
 They need to be initialized by an existing CSR or certificate. For creation of 
 new CSRs or certificates there's a static `create()` method in both classes which
 uses standard OpenSSL functions to create the CSR and certificate.
