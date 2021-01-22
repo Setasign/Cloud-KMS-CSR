@@ -45,7 +45,7 @@ class Certificate extends \SetaPDF_Signer_X509_Certificate
      *
      * @return Asn1Element
      */
-    protected function getTBSCertificate()
+    protected function _getTBSCertificate()
     {
         return $this->_certificate->getChild(0);
     }
@@ -58,7 +58,7 @@ class Certificate extends \SetaPDF_Signer_X509_Certificate
      */
     protected function getSubjectPublicKeyInfo()
     {
-        $tbs = $this->getTBSCertificate();
+        $tbs = $this->_getTBSCertificate();
         $offset = 5;
 
         if ($tbs->getChild(0)->getIdent() !== Asn1Element::INTEGER) {
@@ -88,7 +88,7 @@ class Certificate extends \SetaPDF_Signer_X509_Certificate
             $signatureAlgorithmIdentifierParameter
         ) = $this->createSignatureAlgorithmIdentifier($updater);
 
-        $tbs = $this->getTBSCertificate();
+        $tbs = $this->_getTBSCertificate();
         $offset = 1;
 
         if ($tbs->getChild(0)->getIdent() !== Asn1Element::INTEGER) {
