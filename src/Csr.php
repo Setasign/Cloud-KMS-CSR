@@ -22,7 +22,7 @@ class Csr
     /**
      * @var Asn1Element
      */
-    protected $_csr;
+    protected $csr;
 
     /**
      * Creates a CSR instance by creating a brand new CSR with the use of OpenSSL functions.
@@ -44,7 +44,7 @@ class Csr
             $configargs['config'] = __DIR__ . '/empty_openssl.cfg';
         }
 
-        $csr = openssl_csr_new($dn, $privkey, $configargs,  $extraattribs);
+        $csr = openssl_csr_new($dn, $privkey, $configargs, $extraattribs);
         openssl_csr_export($csr, $csrString);
 
         return new self($csrString);
@@ -54,7 +54,6 @@ class Csr
      * Csr constructor.
      *
      * @param string $csr
-     * @throws \SetaPDF_Signer_Asn1_Exception
      */
     public function __construct($csr)
     {
@@ -75,7 +74,7 @@ class Csr
             throw new \InvalidArgumentException('CSR is not a valid ASN.1 structure.', 0, $e);
         }
 
-        if ($_csr->getIdent() !== (Asn1Element::IS_CONSTRUCTED | Asn1Element::SEQUENCE) ) {
+        if ($_csr->getIdent() !== (Asn1Element::IS_CONSTRUCTED | Asn1Element::SEQUENCE)) {
             throw new \InvalidArgumentException('Invalid data type in CSR data structure (expected SEQUENCE).');
         }
 
@@ -83,7 +82,7 @@ class Csr
             throw new \InvalidArgumentException('Invalid element count in CSR data structure.');
         }
 
-        $this->_csr = $_csr;
+        $this->csr = $_csr;
     }
 
     /**
@@ -96,9 +95,9 @@ class Csr
     {
         switch (strtolower($format)) {
             case Format::DER:
-                return (string) $this->_csr;
+                return (string) $this->csr;
             case Format::PEM:
-                return Pem::encode((string)$this->_csr, 'CERTIFICATE REQUEST');
+                return Pem::encode((string)$this->csr, 'CERTIFICATE REQUEST');
             default:
                 throw new \InvalidArgumentException(\sprintf('Unknown format "%s".', $format));
         }
@@ -112,7 +111,7 @@ class Csr
      */
     public function getSignatureAlgorithm()
     {
-        $signatureAlgorithm = $this->_csr->getChild(1);
+        $signatureAlgorithm = $this->csr->getChild(1);
         $parameter = $signatureAlgorithm->getChild(1);
 
         return [
@@ -129,7 +128,7 @@ class Csr
      */
     public function getSignatureValue($hex = true)
     {
-        $signatureValue = $this->_csr->getChild(2)->getValue();
+        $signatureValue = $this->csr->getChild(2)->getValue();
         $signatureValue = \substr($signatureValue, 1);
 
         if ($hex) {
@@ -146,7 +145,7 @@ class Csr
      */
     public function getSignedData()
     {
-        return (string)$this->_csr->getChild(0);
+        return (string)$this->csr->getChild(0);
     }
 
     /**
@@ -157,7 +156,7 @@ class Csr
      */
     public function getSubjectPublicKeyInfo()
     {
-        $subjectPublicKeyInfo = $this->_csr->getChild(0)->getChild(2);
+        $subjectPublicKeyInfo = $this->csr->getChild(0)->getChild(2);
         if (
             $subjectPublicKeyInfo->getIdent() !==
             (Asn1Element::IS_CONSTRUCTED | Asn1Element::SEQUENCE)
@@ -171,7 +170,8 @@ class Csr
     /**
      * Get the subject public key info algorithm identifier.
      *
-     * @return array First entry is the OID of the identifier. The second entry are the raw parameters as ASN.1 structures.
+     * @return array First entry is the OID of the identifier. The second entry are the raw parameters as ASN.1
+     *               structures.
      * @throws Exception
      */
     public function getSubjectPublicKeyInfoAlgorithmIdentifier()
@@ -195,7 +195,6 @@ class Csr
      * Update the CSR by the passed Updater instance.
      *
      * @param UpdaterInterface $updater
-     * @throws Exception
      * @throws \SetaPDF_Signer_Asn1_Exception
      */
     public function update(UpdaterInterface $updater)
@@ -207,7 +206,7 @@ class Csr
             $signatureAlgorithmIdentifierParameter
         ) = $this->createSignatureAlgorithmIdentifier($updater);
 
-        $signatureAlgorithmIdentifier = $this->_csr->getChild(1);
+        $signatureAlgorithmIdentifier = $this->csr->getChild(1);
         while ($signatureAlgorithmIdentifier->getChildCount() > 0) {
             $signatureAlgorithmIdentifier->removeChild($signatureAlgorithmIdentifier->getChild(0));
         }
@@ -216,7 +215,7 @@ class Csr
         $signatureAlgorithmIdentifier->addChild($signatureAlgorithmIdentifierParameter);
 
         $newSignatureValue = $updater->sign($this->getSignedData());
-        $signatureValue = $this->_csr->getChild(2);
+        $signatureValue = $this->csr->getChild(2);
         $signatureValue->setValue("\x00" . $newSignatureValue);
     }
 
@@ -363,9 +362,10 @@ class Csr
             }
 
             $decryptedDigestAlgorithm = $decryptedResult->getChild(0);
-            if (!$decryptedDigestAlgorithm || $decryptedDigestAlgorithm->getIdent() !==
-                (Asn1Element::IS_CONSTRUCTED | Asn1Element::SEQUENCE) ||
-                $decryptedDigestAlgorithm->getChildCount() < 1
+            if (
+                !$decryptedDigestAlgorithm
+                || $decryptedDigestAlgorithm->getIdent() !== (Asn1Element::IS_CONSTRUCTED | Asn1Element::SEQUENCE)
+                || $decryptedDigestAlgorithm->getChildCount() < 1
             ) {
                 return false;
             }

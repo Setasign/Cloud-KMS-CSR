@@ -17,8 +17,14 @@
             "setasign\\CloudKmsCsr\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "setasign\\CloudKmsCsr\\tests\\": "tests/"
+        }
+    },
     "require": {
         "php": ">=5.6",
+        "ext-openssl": "*",
         "aws/aws-sdk-php": "^3.171",
         "setasign/setapdf-signer": "^2.0",
         "google/cloud-kms": "^1.11",

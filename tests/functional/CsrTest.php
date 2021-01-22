@@ -4,9 +4,14 @@ namespace setasign\CloudKmsCsr\tests\functional;
 
 use PHPUnit\Framework\TestCase;
 use setasign\CloudKmsCsr\Csr;
+use setasign\CloudKmsCsr\Exception;
 
 class CsrTest extends TestCase
 {
+    /**
+     * @return array
+     * @throws \SetaPDF_Signer_Asn1_Exception
+     */
     public function verifyDataProvider()
     {
         return [
@@ -59,7 +64,7 @@ MIIE5jCCAs4CAQAwdTEZMBcGA1UEAxMQRGVtby1FbnZpcm9ubWVudDEfMB0GA1UECgwWU2V0YXNpZ24g
             ],
             // created
             [
-                (Csr::create(['commonName' => 'Tester']))->get()
+                Csr::create(['commonName' => 'Tester'])->get()
             ]
         ];
     }
@@ -67,7 +72,7 @@ MIIE5jCCAs4CAQAwdTEZMBcGA1UEAxMQRGVtby1FbnZpcm9ubWVudDEfMB0GA1UECgwWU2V0YXNpZ24g
     /**
      * @param $csrString
      * @throws \SetaPDF_Signer_Asn1_Exception
-     * @throws \setasign\CloudKmsCsr\Exception
+     * @throws Exception
      * @dataProvider verifyDataProvider
      */
     public function testVerify($csrString)

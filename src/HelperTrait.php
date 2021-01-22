@@ -43,13 +43,16 @@ trait HelperTrait
                 Oid::encode('1.2.840.113549.1.1.10')
             );
             $signatureAlgorithmIdentifierParameter = new Asn1Element(
-                Asn1Element::SEQUENCE | Asn1Element::IS_CONSTRUCTED, '',
+                Asn1Element::SEQUENCE | Asn1Element::IS_CONSTRUCTED,
+                '',
                 [
                     new Asn1Element(
-                        Asn1Element::TAG_CLASS_CONTEXT_SPECIFIC | Asn1Element::IS_CONSTRUCTED, '',
+                        Asn1Element::TAG_CLASS_CONTEXT_SPECIFIC | Asn1Element::IS_CONSTRUCTED,
+                        '',
                         [
                             new Asn1Element(
-                                Asn1Element::SEQUENCE | Asn1Element::IS_CONSTRUCTED, '',
+                                Asn1Element::SEQUENCE | Asn1Element::IS_CONSTRUCTED,
+                                '',
                                 [
                                     new Asn1Element(
                                         Asn1Element::OBJECT_IDENTIFIER,
@@ -61,17 +64,20 @@ trait HelperTrait
                         ]
                     ),
                     new Asn1Element(
-                        Asn1Element::TAG_CLASS_CONTEXT_SPECIFIC | Asn1Element::IS_CONSTRUCTED | "\x01", '',
+                        Asn1Element::TAG_CLASS_CONTEXT_SPECIFIC | Asn1Element::IS_CONSTRUCTED | "\x01",
+                        '',
                         [
                             new Asn1Element(
-                                Asn1Element::SEQUENCE | Asn1Element::IS_CONSTRUCTED, '',
+                                Asn1Element::SEQUENCE | Asn1Element::IS_CONSTRUCTED,
+                                '',
                                 [
                                     new Asn1Element(
                                         Asn1Element::OBJECT_IDENTIFIER,
                                         Oid::encode('1.2.840.113549.1.1.8')
                                     ),
                                     new Asn1Element(
-                                        Asn1Element::SEQUENCE | Asn1Element::IS_CONSTRUCTED, '',
+                                        Asn1Element::SEQUENCE | Asn1Element::IS_CONSTRUCTED,
+                                        '',
                                         [
                                             new Asn1Element(
                                                 Asn1Element::OBJECT_IDENTIFIER,
@@ -85,7 +91,8 @@ trait HelperTrait
                         ]
                     ),
                     new Asn1Element(
-                        Asn1Element::TAG_CLASS_CONTEXT_SPECIFIC | Asn1Element::IS_CONSTRUCTED | "\x02", '',
+                        Asn1Element::TAG_CLASS_CONTEXT_SPECIFIC | Asn1Element::IS_CONSTRUCTED | "\x02",
+                        '',
                         [
                             new Asn1Element(Asn1Element::INTEGER, \chr($saltLength))
                         ]
