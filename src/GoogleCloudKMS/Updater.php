@@ -42,8 +42,7 @@ class Updater implements UpdaterInterface
         $keyId,
         $versionId,
         KeyManagementServiceClient $client = null
-    )
-    {
+    ) {
         $this->keyVersionName = KeyManagementServiceClient::cryptoKeyVersionName(
             $projectId,
             $locationId,

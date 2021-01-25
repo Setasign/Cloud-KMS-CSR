@@ -4,6 +4,7 @@ namespace setasign\CloudKmsCsr\tests\functional\GoogleCloudKMS;
 
 use PHPUnit\Framework\TestCase;
 use setasign\CloudKmsCsr\Certificate;
+use setasign\CloudKmsCsr\Exception;
 use setasign\CloudKmsCsr\GoogleCloudKMS\Updater;
 use setasign\CloudKmsCsr\Csr;
 
@@ -22,11 +23,8 @@ class UpdaterTest extends TestCase
 
     /**
      * @param $keyId
-     * @param $signatureAlgorithm
-     * @param string $region
-     * @param string $version
      * @throws \SetaPDF_Signer_Asn1_Exception
-     * @throws \setasign\CloudKmsCsr\Exception
+     * @throws Exception
      * @dataProvider updaterProvider
      */
     public function testCsrUpdate($keyId)
@@ -52,11 +50,8 @@ class UpdaterTest extends TestCase
 
     /**
      * @param $keyId
-     * @param $signatureAlgorithm
-     * @param string $region
-     * @param string $version
      * @throws \SetaPDF_Signer_Asn1_Exception
-     * @throws \setasign\CloudKmsCsr\Exception
+     * @throws \SetaPDF_Signer_Exception
      * @dataProvider updaterProvider
      */
     public function testCertificateUpdate($keyId)

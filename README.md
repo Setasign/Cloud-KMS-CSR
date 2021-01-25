@@ -49,7 +49,7 @@ The Setasign repository requires authentication data: You can use your credentia
 of your account at [setasign.com](https://www.setasign.com) to which your licenses
 are assigned. You will be asked for this during a composer run. See 
 [here](https://getcomposer.org/doc/articles/authentication-for-private-packages.md#http-basic)
-for more options for authentication. 
+for more options for authentication with composer. 
 
 Depending on what KMS service you want to use make sure that you setup the
 authentication for them:

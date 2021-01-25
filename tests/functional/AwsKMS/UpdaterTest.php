@@ -7,6 +7,7 @@ use PHPUnit\Framework\TestCase;
 use setasign\CloudKmsCsr\AwsKMS\Updater;
 use setasign\CloudKmsCsr\Certificate;
 use setasign\CloudKmsCsr\Csr;
+use setasign\CloudKmsCsr\Exception;
 
 class UpdaterTest extends TestCase
 {
@@ -49,7 +50,7 @@ class UpdaterTest extends TestCase
      * @param string $region
      * @param string $version
      * @throws \SetaPDF_Signer_Asn1_Exception
-     * @throws \setasign\CloudKmsCsr\Exception
+     * @throws Exception
      * @dataProvider updaterProvider
      */
     public function testCsrUpdate($keyId, $signatureAlgorithm, $region = 'eu-central-1', $version = 'latest')
@@ -81,7 +82,7 @@ class UpdaterTest extends TestCase
      * @param string $region
      * @param string $version
      * @throws \SetaPDF_Signer_Asn1_Exception
-     * @throws \setasign\CloudKmsCsr\Exception
+     * @throws \SetaPDF_Signer_Exception
      * @dataProvider updaterProvider
      */
     public function testCertificateUpdate($keyId, $signatureAlgorithm, $region = 'eu-central-1', $version = 'latest')
@@ -116,12 +117,15 @@ class UpdaterTest extends TestCase
      * @param $signatureAlgorithm
      * @param string $region
      * @param string $version
+     * @throws Exception
      * @dataProvider updateWithInvalidAlgorithmProvider
      */
     public function testUpdaterWithInvalidAlgorithm(
-        $keyId, $signatureAlgorithm, $region = 'eu-central-1', $version = 'latest'
-    )
-    {
+        $keyId,
+        $signatureAlgorithm,
+        $region = 'eu-central-1',
+        $version = 'latest'
+    ) {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage(\sprintf('Signature algorithm "%s"', $signatureAlgorithm));
 
