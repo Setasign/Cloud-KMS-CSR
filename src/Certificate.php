@@ -58,7 +58,7 @@ class Certificate extends \SetaPDF_Signer_X509_Certificate
     /**
      * Get the data of the Subject Public Key Info field.
      *
-     * @return string
+     * @return Asn1Element
      * @throws Exception
      */
     protected function getSubjectPublicKeyInfo()

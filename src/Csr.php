@@ -156,10 +156,10 @@ class Csr
     /**
      * Get the data of the Subject Public Key Info field.
      *
-     * @return string
+     * @return Asn1Element
      * @throws Exception
      */
-    public function getSubjectPublicKeyInfo()
+    protected function getSubjectPublicKeyInfo()
     {
         $subjectPublicKeyInfo = $this->csr->getChild(0)->getChild(2);
         if (
