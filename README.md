@@ -60,6 +60,25 @@ authentication for them:
 We use authentication data from environment variables for demonstration purpose
 throughout.
 
+### Evaluation version
+By default this packages depends on a licensed version of the [SetaPDF-Signer](https://www.setasign.com/signer)
+component. If you want to use it with an [evaluation version](https://www.setasign.com/products/setapdf-signer/evaluate/)
+please use following in your composer.json:
+
+```json
+{
+    "require": {
+        "setasign/setapdf-signer-addon-aws-kms": "dev-evaluation"
+    },
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://www.setasign.com/downloads/"
+        }
+    ]
+}
+```
+
 ## How it works
 
 We implemented two classes representing a CSR and a X.509 certificate instance.
