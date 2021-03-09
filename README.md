@@ -68,7 +68,7 @@ please use following in your composer.json:
 ```json
 {
     "require": {
-        "setasign/setapdf-signer-addon-aws-kms": "dev-evaluation"
+        "setasign/cloud-kms-csr": "dev-evaluation"
     },
     "repositories": [
         {
