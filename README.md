@@ -147,8 +147,7 @@ echo $certificate->get();
 ### AWS KMS
 
 Nearly the same for AWS KMS. You only have to define the signature algorithm
-yourself. See [here](https://docs.aws.amazon.com/kms/latest/developerguide/symm-asymm-choose.html#key-spec-rsa-sign)
-for all available algorithms. Notice that these algorithms need to be supported by the used key.
+yourself. See [here](https://docs.aws.amazon.com/kms/latest/developerguide/asymmetric-key-specs.html#w234aac11c27c29b7c17b9) and [here](https://docs.aws.amazon.com/kms/latest/developerguide/asymmetric-key-specs.html#w234aac11c27c29b9c19) for all available algorithms. Notice that these algorithms need to be supported by the used key.
 
 ```php
 <?php
