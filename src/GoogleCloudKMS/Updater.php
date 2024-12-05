@@ -41,11 +41,11 @@ class Updater implements UpdaterInterface
      * @param KeyManagementServiceClient|null $client
      */
     public function __construct(
-        $projectId,
-        $locationId,
-        $keyRingId,
-        $keyId,
-        $versionId,
+        string                     $projectId,
+        string                     $locationId,
+        string                     $keyRingId,
+        string                     $keyId,
+        string                     $versionId,
         KeyManagementServiceClient $client = null
     ) {
         $this->keyVersionName = KeyManagementServiceClient::cryptoKeyVersionName(
@@ -64,7 +64,7 @@ class Updater implements UpdaterInterface
      * @throws Exception
      * @throws ApiException
      */
-    public function getDigest()
+    public function getDigest(): string
     {
         $algorithm = $this->ensurePublicKey()->getAlgorithm();
         switch ($algorithm) {
@@ -91,7 +91,7 @@ class Updater implements UpdaterInterface
      * @throws Exception
      * @throws ApiException
      */
-    public function getAlgorithm()
+    public function getAlgorithm(): string
     {
         $algorithm = $this->ensurePublicKey()->getAlgorithm();
         switch ($algorithm) {
@@ -118,7 +118,7 @@ class Updater implements UpdaterInterface
      * @see https://cloud.google.com/kms/docs/algorithms#rsa_signing_algorithms
      * @throws ApiException
      */
-    public function getPssSaltLength()
+    public function getPssSaltLength(): int
     {
         // "For Probabilistic Signature Scheme (PSS), the salt length used is equal to the length of the digest
         // algorithm. For example, RSA_SIGN_PSS_2048_SHA256 will use PSS with a salt length of 256 bits."
@@ -154,7 +154,7 @@ class Updater implements UpdaterInterface
      * @inheritDoc
      * @throws ApiException
      */
-    public function getPublicKey()
+    public function getPublicKey(): string
     {
         return $this->ensurePublicKey()->getPem();
     }
@@ -163,7 +163,7 @@ class Updater implements UpdaterInterface
      * @inheritDoc
      * @throws ApiException|Exception
      */
-    public function sign($data)
+    public function sign(string $data): string
     {
         $digest = $this->getDigest();
         $hash = \hash($digest, $data, true);

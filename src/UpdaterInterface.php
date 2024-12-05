@@ -14,28 +14,28 @@ interface UpdaterInterface
      *
      * @return string Possible values are the constants from \SetaPDF_Signer_Digest::SHA_*.
      */
-    public function getDigest();
+    public function getDigest(): string;
 
     /**
      * Get the signature algorithm.
      *
      * @return string Possible values are the constants from \SetaPDF_Signer_Digest::*_ALGORITHM
      */
-    public function getAlgorithm();
+    public function getAlgorithm(): string;
 
     /**
      * Get the salt length if PSS padding is used.
      *
      * @return int The length in bytes
      */
-    public function getPssSaltLength();
+    public function getPssSaltLength(): int;
 
     /**
      * Get the public key PEM encoded.
      *
      * @return string
      */
-    public function getPublicKey();
+    public function getPublicKey(): string;
 
     /**
      * Signs the given data.
@@ -43,5 +43,5 @@ interface UpdaterInterface
      * @param string $data
      * @return string
      */
-    public function sign($data);
+    public function sign(string $data): string;
 }

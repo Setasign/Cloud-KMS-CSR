@@ -19,8 +19,9 @@ trait HelperTrait
      *
      * @param UpdaterInterface $updater
      * @throws \SetaPDF_Signer_Asn1_Exception
+     * @throws Exception
      */
-    protected function updateSubjectPublicKeyInfo(UpdaterInterface $updater)
+    protected function updateSubjectPublicKeyInfo(UpdaterInterface $updater): void
     {
         // get the public key
         $publicKey = Asn1Element::parse(Pem::decode($updater->getPublicKey()));
@@ -35,8 +36,10 @@ trait HelperTrait
      *
      * @param UpdaterInterface $updater
      * @return array
+     * @throws Exception
+     * @throws \SetaPDF_Signer_Exception
      */
-    protected function createSignatureAlgorithmIdentifier(UpdaterInterface $updater)
+    protected function createSignatureAlgorithmIdentifier(UpdaterInterface $updater): array
     {
         $digest = $updater->getDigest();
 

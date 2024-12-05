@@ -39,7 +39,7 @@ class Updater implements UpdaterInterface
      * @param string $keyId
      * @param KmsClient $kmsClient
      */
-    public function __construct($keyId, KmsClient $kmsClient)
+    public function __construct(string $keyId, KmsClient $kmsClient)
     {
         $this->keyId = $keyId;
         $this->kmsClient = $kmsClient;
@@ -51,10 +51,10 @@ class Updater implements UpdaterInterface
      * @see https://cloud.google.com/kms/docs/reference/rest/v1/CryptoKeyVersionAlgorithm
      * @param string $signatureAlgorithm
      */
-    public function setSignatureAlgorithm($signatureAlgorithm)
+    public function setSignatureAlgorithm(string $signatureAlgorithm): void
     {
         $publicKey = $this->ensurePublicKey();
-        if (!in_array($signatureAlgorithm, $publicKey->get('SigningAlgorithms'), true)) {
+        if (!\in_array($signatureAlgorithm, $publicKey->get('SigningAlgorithms'), true)) {
             throw new \InvalidArgumentException(
                 \sprintf('Signature algorithm "%s" is not supported by key.', $signatureAlgorithm)
             );
@@ -69,7 +69,7 @@ class Updater implements UpdaterInterface
      * @see https://cloud.google.com/kms/docs/reference/rest/v1/CryptoKeyVersionAlgorithm
      * @return string
      */
-    public function getSignatureAlgorithm()
+    public function getSignatureAlgorithm(): string
     {
         if ($this->signatureAlgorithm === null) {
             throw new \BadMethodCallException('Signature algorithm is not set.');
@@ -82,7 +82,7 @@ class Updater implements UpdaterInterface
      * @inheritDoc
      * @throws Exception
      */
-    public function getDigest()
+    public function getDigest(): string
     {
         $algorithm = $this->getSignatureAlgorithm();
         switch ($algorithm) {
@@ -107,7 +107,7 @@ class Updater implements UpdaterInterface
      * @inheritDoc
      * @throws Exception
      */
-    public function getAlgorithm()
+    public function getAlgorithm(): string
     {
         $algorithm = $this->getSignatureAlgorithm();
         switch ($algorithm) {
@@ -132,7 +132,7 @@ class Updater implements UpdaterInterface
      * @inheritDoc
      * @see https://docs.aws.amazon.com/kms/latest/developerguide/symm-asymm-choose.html
      */
-    public function getPssSaltLength()
+    public function getPssSaltLength(): int
     {
         // E.g.: "PKCS #1 v2.2, Section 8.1, RSA signature with PSS padding using SHA-256 for both the message
         // digest and the MGF1 mask generation function along with a 256-bit salt"
@@ -154,7 +154,7 @@ class Updater implements UpdaterInterface
      *
      * @return \Aws\Result
      */
-    public function ensurePublicKey()
+    public function ensurePublicKey(): \Aws\Result
     {
         if ($this->publicKey === null) {
             $this->publicKey = $this->kmsClient->getPublicKey([
@@ -168,7 +168,7 @@ class Updater implements UpdaterInterface
     /**
      * @inheritDoc
      */
-    public function getPublicKey()
+    public function getPublicKey(): string
     {
         return Pem::encode($this->ensurePublicKey()->get('PublicKey'), 'PUBLIC KEY');
     }
@@ -177,7 +177,7 @@ class Updater implements UpdaterInterface
      * @inheritDoc
      * @throws Exception
      */
-    public function sign($data)
+    public function sign(string $data): string
     {
         $result = $this->kmsClient->sign([
             'KeyId' => $this->keyId,
