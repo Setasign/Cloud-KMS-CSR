@@ -41,12 +41,12 @@ class Updater implements UpdaterInterface
      * @param KeyManagementServiceClient|null $client
      */
     public function __construct(
-        string                     $projectId,
-        string                     $locationId,
-        string                     $keyRingId,
-        string                     $keyId,
-        string                     $versionId,
-        KeyManagementServiceClient $client = null
+        string $projectId,
+        string $locationId,
+        string $keyRingId,
+        string $keyId,
+        string $versionId,
+        ?KeyManagementServiceClient $client = null
     ) {
         $this->keyVersionName = KeyManagementServiceClient::cryptoKeyVersionName(
             $projectId,
@@ -56,7 +56,7 @@ class Updater implements UpdaterInterface
             $versionId
         );
 
-        $this->kmsClient = $client !== null ? $client : new KeyManagementServiceClient();
+        $this->kmsClient = $client ?? new KeyManagementServiceClient();
     }
 
     /**
