@@ -45,11 +45,7 @@ and execute `composer update`. You need to define the `repository` to evaluate t
 (see [here](https://getcomposer.org/doc/faqs/why-can%27t-composer-load-repositories-recursively.md)
 for more details).
 
-The Setasign repository requires authentication data: You can use your credentials
-of your account at [setasign.com](https://www.setasign.com) to which your licenses
-are assigned. You will be asked for this during a composer run. See 
-[here](https://getcomposer.org/doc/articles/authentication-for-private-packages.md#http-basic)
-for more options for authentication with composer. 
+The Setasign repository requires authentication data. Please check your personal [composer settings](https://www.setasign.com/my-setasign/composer-settings/) on our website for how to create authentication tokens. 
 
 Depending on what KMS service you want to use make sure that you setup the
 authentication for them:
@@ -128,7 +124,7 @@ echo $certificate->get();
 ### AWS KMS
 
 Nearly the same for AWS KMS. You only have to define the signature algorithm
-yourself. See [here](https://docs.aws.amazon.com/kms/latest/developerguide/asymmetric-key-specs.html#w234aac11c27c29b7c17b9) and [here](https://docs.aws.amazon.com/kms/latest/developerguide/asymmetric-key-specs.html#w234aac11c27c29b9c19) for all available algorithms. Notice that these algorithms need to be supported by the used key.
+yourself. See [here](https://docs.aws.amazon.com/kms/latest/developerguide/symm-asymm-choose-key-spec.html#key-spec-rsa-sign) and [here](https://docs.aws.amazon.com/kms/latest/developerguide/symm-asymm-choose-key-spec.html#key-spec-ecc) for all available algorithms. Notice that these algorithms need to be supported by the used key.
 
 ```php
 <?php
