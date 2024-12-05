@@ -28,31 +28,30 @@ class Certificate extends \SetaPDF_Signer_X509_Certificate
      * @return Certificate
      * @throws \SetaPDF_Signer_Asn1_Exception
      */
-    public static function create(array $dn, $days = 365, $serial = 0, $configargs = [], array $extraattribs = null)
+    public static function create(
+        array $dn,
+        int   $days = 365,
+        int   $serial = 0,
+        array $configargs = [],
+        array $extraattribs = null
+    ): Certificate
     {
-        $privkey = openssl_pkey_new();
-        if (!isset($configargs['config'])) {
-            $configargs['config'] = __DIR__ . '/empty_openssl.cfg';
-        }
+        $configargs = \array_merge(
+            [
+                'config' => __DIR__ . '/empty_openssl.cfg'
+            ],
+            $configargs
+        );
 
-        $csr = openssl_csr_new($dn, $privkey, $configargs, $extraattribs);
-        openssl_csr_export($csr, $csrString);
+        $privkey = \openssl_pkey_new($configargs);
+        $csr = \openssl_csr_new($dn, $privkey, $configargs, $extraattribs);
+        \openssl_csr_export($csr, $csrString);
 
-        $certRespource = openssl_csr_sign($csr, null, $privkey, $days, $configargs, $serial);
+        $certRespource = \openssl_csr_sign($csr, null, $privkey, $days, $configargs, $serial);
 
-        openssl_x509_export($certRespource, $certificateString);
+        \openssl_x509_export($certRespource, $certificateString);
 
         return new self($certificateString);
-    }
-
-    /**
-     * Get the TBSCertificate value.
-     *
-     * @return Asn1Element
-     */
-    protected function _getTBSCertificate()
-    {
-        return $this->_certificate->getChild(0);
     }
 
     /**
@@ -61,7 +60,7 @@ class Certificate extends \SetaPDF_Signer_X509_Certificate
      * @return Asn1Element
      * @throws Exception
      */
-    protected function getSubjectPublicKeyInfo()
+    protected function getSubjectPublicKeyInfo(): Asn1Element
     {
         $tbs = $this->_getTBSCertificate();
         $offset = 5;
@@ -82,16 +81,18 @@ class Certificate extends \SetaPDF_Signer_X509_Certificate
      * Update the certificate by the passed Updater instance.
      *
      * @param UpdaterInterface $updater
+     * @throws Exception
      * @throws \SetaPDF_Signer_Asn1_Exception
+     * @throws \SetaPDF_Signer_Exception
      */
-    public function update(UpdaterInterface $updater)
+    public function update(UpdaterInterface $updater): void
     {
         $this->updateSubjectPublicKeyInfo($updater);
 
-        list(
+        [
             $signatureAlgorithmIdentifierAlgorithm,
             $signatureAlgorithmIdentifierParameter
-        ) = $this->createSignatureAlgorithmIdentifier($updater);
+        ] = $this->createSignatureAlgorithmIdentifier($updater);
 
         $tbs = $this->_getTBSCertificate();
         $offset = 1;
@@ -119,7 +120,7 @@ class Certificate extends \SetaPDF_Signer_X509_Certificate
         $signatureAlgorithmIdentifier->addChild($signatureAlgorithmIdentifierParameter);
 
         $newSignatureValue = $updater->sign($this->getSignedData());
-        // This is a BIT_STRING and not a OCTET_STRING as for "signedData"
+        // This is a BIT_STRING and not an OCTET_STRING as for "signedData"
         $signatureValue = $this->_certificate->getChild(2);
         $signatureValue->setValue("\x00" . $newSignatureValue);
     }
