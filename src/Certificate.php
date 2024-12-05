@@ -33,7 +33,7 @@ class Certificate extends \SetaPDF_Signer_X509_Certificate
         int   $days = 365,
         int   $serial = 0,
         array $configargs = [],
-        array $extraattribs = null
+        ?array $extraattribs = null
     ): Certificate
     {
         $configargs = \array_merge(

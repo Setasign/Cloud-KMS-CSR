@@ -41,7 +41,7 @@ class Csr
      * @param array|null $extraattribs
      * @return Csr
      */
-    public static function create(array $dn, array $configargs = [], array $extraattribs = null): Csr
+    public static function create(array $dn, array $configargs = [], ?array $extraattribs = null): Csr
     {
         $configargs = \array_merge(
             [
