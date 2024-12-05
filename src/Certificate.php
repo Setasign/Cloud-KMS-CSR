@@ -43,7 +43,7 @@ class Certificate extends \SetaPDF_Signer_X509_Certificate
             $configargs
         );
 
-        $privkey = \openssl_pkey_new($configargs);
+        $privkey = null;
         $csr = \openssl_csr_new($dn, $privkey, $configargs, $extraattribs);
         \openssl_csr_export($csr, $csrString);
 

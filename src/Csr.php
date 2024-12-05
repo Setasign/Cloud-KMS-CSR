@@ -40,17 +40,19 @@ class Csr
      * @param array $configargs
      * @param array|null $extraattribs
      * @return Csr
-     * @throws \SetaPDF_Signer_Asn1_Exception
      */
-    public static function create(array $dn, $configargs = [], array $extraattribs = null)
+    public static function create(array $dn, array $configargs = [], array $extraattribs = null): Csr
     {
-        $privkey = openssl_pkey_new();
-        if (!isset($configargs['config'])) {
-            $configargs['config'] = __DIR__ . '/empty_openssl.cfg';
-        }
+        $configargs = \array_merge(
+            [
+                'config' => __DIR__ . '/empty_openssl.cfg'
+            ],
+            $configargs
+        );
 
-        $csr = openssl_csr_new($dn, $privkey, $configargs, $extraattribs);
-        openssl_csr_export($csr, $csrString);
+        $privkey = null;
+        $csr = \openssl_csr_new($dn, $privkey, $configargs, $extraattribs);
+        \openssl_csr_export($csr, $csrString);
 
         return new self($csrString);
     }
@@ -60,10 +62,11 @@ class Csr
      *
      * @param string $csr
      */
-    public function __construct($csr)
+    public function __construct(string $csr)
     {
         if (\strpos($csr, '-----BEGIN CERTIFICATE REQUEST-----') === false) {
             if (($_csr = \base64_decode($csr, true)) !== false) {
+                /** @noinspection CallableParameterUseCaseInTypeContextInspection */
                 $csr = $_csr;
             }
 
@@ -96,9 +99,9 @@ class Csr
      * @param string $format
      * @return string
      */
-    public function get($format = Format::PEM)
+    public function get(string $format = Format::PEM): string
     {
-        switch (strtolower($format)) {
+        switch (\strtolower($format)) {
             case Format::DER:
                 return (string) $this->csr;
             case Format::PEM:
@@ -114,7 +117,7 @@ class Csr
      * @return array The first value holds the OID of the algorithm. The second value is the ASN.1 structure of the
      *               parameters.
      */
-    public function getSignatureAlgorithm()
+    public function getSignatureAlgorithm(): array
     {
         $signatureAlgorithm = $this->csr->getChild(1);
         $parameter = $signatureAlgorithm->getChild(1);
@@ -131,7 +134,7 @@ class Csr
      * @param bool $hex
      * @return string
      */
-    public function getSignatureValue($hex = true)
+    public function getSignatureValue(bool $hex = true): string
     {
         $signatureValue = $this->csr->getChild(2)->getValue();
         $signatureValue = \substr($signatureValue, 1);
@@ -148,7 +151,7 @@ class Csr
      *
      * @return string
      */
-    public function getSignedData()
+    public function getSignedData(): string
     {
         return (string)$this->csr->getChild(0);
     }
@@ -159,7 +162,7 @@ class Csr
      * @return Asn1Element
      * @throws Exception
      */
-    protected function getSubjectPublicKeyInfo()
+    protected function getSubjectPublicKeyInfo(): Asn1Element
     {
         $subjectPublicKeyInfo = $this->csr->getChild(0)->getChild(2);
         if (
@@ -179,7 +182,7 @@ class Csr
      *               structures.
      * @throws Exception
      */
-    public function getSubjectPublicKeyInfoAlgorithmIdentifier()
+    public function getSubjectPublicKeyInfoAlgorithmIdentifier(): array
     {
         $subjectPublicKeyInfo = $this->getSubjectPublicKeyInfo();
 
@@ -200,16 +203,18 @@ class Csr
      * Update the CSR by the passed Updater instance.
      *
      * @param UpdaterInterface $updater
+     * @throws Exception
      * @throws \SetaPDF_Signer_Asn1_Exception
+     * @throws \SetaPDF_Signer_Exception
      */
-    public function update(UpdaterInterface $updater)
+    public function update(UpdaterInterface $updater): void
     {
         $this->updateSubjectPublicKeyInfo($updater);
 
-        list(
+        [
             $signatureAlgorithmIdentifierAlgorithm,
             $signatureAlgorithmIdentifierParameter
-        ) = $this->createSignatureAlgorithmIdentifier($updater);
+        ] = $this->createSignatureAlgorithmIdentifier($updater);
 
         $signatureAlgorithmIdentifier = $this->csr->getChild(1);
         while ($signatureAlgorithmIdentifier->getChildCount() > 0) {
@@ -231,13 +236,9 @@ class Csr
      * @throws \SetaPDF_Signer_Asn1_Exception
      * @throws Exception
      */
-    public function verify()
+    public function verify(): bool
     {
         $signedData = $this->getSignedData();
-        if ($signedData === false) {
-            return false;
-        }
-
         $publicKey = Pem::encode($this->getSubjectPublicKeyInfo(), 'PUBLIC KEY');
 
         $signatureAlgorithm = $this->getSignatureAlgorithm();
@@ -348,7 +349,7 @@ class Csr
             return ($result === 1);
         }
 
-        $algorithm = \array_search(
+        $algorithm = \in_array(
             $signatureAlgorithm[0],
             Digest::$encryptionOids[Digest::RSA_ALGORITHM],
             true
