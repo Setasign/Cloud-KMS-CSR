@@ -23,9 +23,9 @@
         }
     },
     "require": {
-        "php": ">=7.2.5",
+        "php": ">=8.1",
         "ext-openssl": "*",
-        "aws/aws-sdk-php": "^3.171",
+        "aws/aws-sdk-php": "^3.368",
         "setasign/setapdf-signer": "^2.0",
         "google/cloud-kms": "^1.11",
         "phpseclib/phpseclib": "^2.0"
