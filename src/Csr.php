@@ -1,17 +1,21 @@
 <?php
 
 /**
- * @copyright Copyright (c) 2021 Setasign GmbH & Co. KG (https://www.setasign.com)
+ * @copyright Copyright (c) 2026 Setasign GmbH & Co. KG (https://www.setasign.com)
  * @license   http://opensource.org/licenses/mit-license The MIT License
  */
 
 namespace setasign\CloudKmsCsr;
 
-use SetaPDF_Signer_Pem as Pem;
-use SetaPDF_Signer_X509_Format as Format;
-use SetaPDF_Signer_Asn1_Element as Asn1Element;
-use SetaPDF_Signer_Digest as Digest;
-use SetaPDF_Signer_Asn1_Oid as Oid;
+use setasign\SetaPDF2\Core\BitConverter;
+use setasign\SetaPDF2\Core\Type\PdfHexString;
+use setasign\SetaPDF2\Signer\Asn1\Exception as Asn1Exception;
+use setasign\SetaPDF2\Signer\Exception;
+use setasign\SetaPDF2\Signer\PemHelper;
+use setasign\SetaPDF2\Signer\X509\Format;
+use setasign\SetaPDF2\Signer\Asn1\Element as Asn1Element;
+use setasign\SetaPDF2\Signer\Digest;
+use setasign\SetaPDF2\Signer\Asn1\Oid;
 
 class Csr
 {
@@ -19,15 +23,10 @@ class Csr
 
     /**
      * Flag to disable phpseclib usage during verification.
-     *
-     * @var bool
      */
-    public static $usePhpseclibForRsaPss = true;
+    public static bool $usePhpseclibForRsaPss = true;
 
-    /**
-     * @var Asn1Element
-     */
-    protected $csr;
+    protected Asn1Element $csr;
 
     /**
      * Creates a CSR instance by creating a brand new CSR with the use of OpenSSL functions.
@@ -64,21 +63,21 @@ class Csr
      */
     public function __construct(string $csr)
     {
-        if (\strpos($csr, '-----BEGIN CERTIFICATE REQUEST-----') === false) {
+        if (!\str_contains($csr, '-----BEGIN CERTIFICATE REQUEST-----')) {
             if (($_csr = \base64_decode($csr, true)) !== false) {
                 /** @noinspection CallableParameterUseCaseInTypeContextInspection */
                 $csr = $_csr;
             }
 
-            $csr = Pem::encode($csr, 'CERTIFICATE REQUEST');
+            $csr = PemHelper::encode($csr, 'CERTIFICATE REQUEST');
         }
 
         $label = 'CERTIFICATE REQUEST';
-        $csr = Pem::decode($csr, $label);
+        $csr = PemHelper::decode($csr, $label);
 
         try {
             $_csr = Asn1Element::parse($csr);
-        } catch (\SetaPDF_Signer_Asn1_Exception $e) {
+        } catch (Asn1Exception $e) {
             throw new \InvalidArgumentException('CSR is not a valid ASN.1 structure.', 0, $e);
         }
 
@@ -101,14 +100,11 @@ class Csr
      */
     public function get(string $format = Format::PEM): string
     {
-        switch (\strtolower($format)) {
-            case Format::DER:
-                return (string) $this->csr;
-            case Format::PEM:
-                return Pem::encode((string)$this->csr, 'CERTIFICATE REQUEST');
-            default:
-                throw new \InvalidArgumentException(\sprintf('Unknown format "%s".', $format));
-        }
+        return match (\strtolower($format)) {
+            Format::DER => (string)$this->csr,
+            Format::PEM => PemHelper::encode((string)$this->csr, 'CERTIFICATE REQUEST'),
+            default => throw new \InvalidArgumentException(\sprintf('Unknown format "%s".', $format)),
+        };
     }
 
     /**
@@ -140,7 +136,7 @@ class Csr
         $signatureValue = \substr($signatureValue, 1);
 
         if ($hex) {
-            return \SetaPDF_Core_Type_HexString::str2hex($signatureValue);
+            return PdfHexString::str2hex($signatureValue);
         }
 
         return $signatureValue;
@@ -204,8 +200,6 @@ class Csr
      *
      * @param UpdaterInterface $updater
      * @throws Exception
-     * @throws \SetaPDF_Signer_Asn1_Exception
-     * @throws \SetaPDF_Signer_Exception
      */
     public function update(UpdaterInterface $updater): void
     {
@@ -233,13 +227,12 @@ class Csr
      * Verify the CSR.
      *
      * @return bool
-     * @throws \SetaPDF_Signer_Asn1_Exception
      * @throws Exception
      */
     public function verify(): bool
     {
         $signedData = $this->getSignedData();
-        $publicKey = Pem::encode($this->getSubjectPublicKeyInfo(), 'PUBLIC KEY');
+        $publicKey = PemHelper::encode($this->getSubjectPublicKeyInfo(), 'PUBLIC KEY');
 
         $signatureAlgorithm = $this->getSignatureAlgorithm();
         $algorithm = false;
@@ -288,29 +281,28 @@ class Csr
                         break;
                     case 2:
                         $value = $parameter->getChild(0)->getValue();
-                        $parameters[2] = \SetaPDF_Core_BitConverter::formatFromInt($value, \strlen($value));
+                        $parameters[2] = BitConverter::formatFromInt($value, \strlen($value));
                         break;
                 }
             }
 
-            if (self::$usePhpseclibForRsaPss && \class_exists(\phpseclib\Crypt\RSA::class)) {
-                $rsa = new \phpseclib\Crypt\RSA();
-
+            if (self::$usePhpseclibForRsaPss) {
                 // PHPSecLib doesn't support a complete key, if the algorithm is set to rsaPSS.
                 // until this is merged and released: https://github.com/phpseclib/phpseclib/pull/1584
                 // We simply change these fields to standard rsaEncryption.
                 // Another way could be to use the raw key from "subjectPublicKey".
                 $_publicKey = Asn1Element::parse((string)$this->getSubjectPublicKeyInfo());
                 $_publicKey->getChild(0)->getChild(0)->setValue(Oid::encode('1.2.840.113549.1.1.1'));
-                $_publicKey->getChild(0)->addChild(new Asn1Element(Asn1Element::NULL));
-                $_publicKey = Pem::encode($_publicKey, 'PUBLIC KEY');
+                if ($_publicKey->getChild(0)->getChild(1) === false) {
+                    $_publicKey->getChild(0)->addChild(new Asn1Element(Asn1Element::NULL));
+                }
+                $_publicKey = PemHelper::encode($_publicKey, 'PUBLIC KEY');
 
-                $rsa->loadKey($_publicKey);
-
-                $rsa->setHash($parameters[0]);
-                $rsa->setMGFHash($parameters[1]);
+                $rsa = \phpseclib3\Crypt\PublicKeyLoader::loadPublicKey($_publicKey)
+                    ->withHash($parameters[0])
+                    ->withMGFHash($parameters[1]);
                 if ($parameters[2] !== null) {
-                    $rsa->setSaltLength($parameters[2]);
+                    $rsa = $rsa->withSaltLength($parameters[2]);
                 }
 
                 return $rsa->verify(

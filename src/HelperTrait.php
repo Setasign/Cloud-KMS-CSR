@@ -1,16 +1,17 @@
 <?php
 
 /**
- * @copyright Copyright (c) 2021 Setasign GmbH & Co. KG (https://www.setasign.com)
+ * @copyright Copyright (c) 2026 Setasign GmbH & Co. KG (https://www.setasign.com)
  * @license   http://opensource.org/licenses/mit-license The MIT License
  */
 
 namespace setasign\CloudKmsCsr;
 
-use SetaPDF_Signer_Asn1_Element as Asn1Element;
-use SetaPDF_Signer_Digest as Digest;
-use SetaPDF_Signer_Asn1_Oid as Oid;
-use SetaPDF_Signer_Pem as Pem;
+use setasign\SetaPDF2\Signer\Asn1\Element as Asn1Element;
+use setasign\SetaPDF2\Signer\Asn1\Exception;
+use setasign\SetaPDF2\Signer\Digest;
+use setasign\SetaPDF2\Signer\Asn1\Oid;
+use setasign\SetaPDF2\Signer\PemHelper;
 
 trait HelperTrait
 {
@@ -18,13 +19,13 @@ trait HelperTrait
      * Updates the SubjectPublicKeyInfo with the public key of the Updater instance.
      *
      * @param UpdaterInterface $updater
-     * @throws \SetaPDF_Signer_Asn1_Exception
      * @throws Exception
+     * @throws \setasign\SetaPDF2\Signer\Exception
      */
     protected function updateSubjectPublicKeyInfo(UpdaterInterface $updater): void
     {
         // get the public key
-        $publicKey = Asn1Element::parse(Pem::decode($updater->getPublicKey()));
+        $publicKey = Asn1Element::parse(PemHelper::decode($updater->getPublicKey()));
         // and update the subject public key with it
         $subjectPublicKeyInfo = $this->getSubjectPublicKeyInfo();
         $subjectPublicKeyInfo->removeChild($subjectPublicKeyInfo->getChild(0));
@@ -37,7 +38,7 @@ trait HelperTrait
      * @param UpdaterInterface $updater
      * @return array
      * @throws Exception
-     * @throws \SetaPDF_Signer_Exception
+     * @throws \setasign\SetaPDF2\Signer\Exception
      */
     protected function createSignatureAlgorithmIdentifier(UpdaterInterface $updater): array
     {

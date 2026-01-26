@@ -11,7 +11,7 @@ use setasign\CloudKmsCsr\Exception;
 
 class UpdaterTest extends TestCase
 {
-    public function updaterProvider()
+    public function updaterProvider(): array
     {
         return [
             // Test-Key-RSA_2048
@@ -45,16 +45,19 @@ class UpdaterTest extends TestCase
     }
 
     /**
-     * @param $keyId
-     * @param $signatureAlgorithm
+     * @param string $keyId
+     * @param string $signatureAlgorithm
      * @param string $region
      * @param string $version
-     * @throws \SetaPDF_Signer_Asn1_Exception
-     * @throws Exception
      * @dataProvider updaterProvider
+     * @throws \setasign\SetaPDF2\Signer\Exception
      */
-    public function testCsrUpdate($keyId, $signatureAlgorithm, $region = 'eu-central-1', $version = 'latest')
-    {
+    public function testCsrUpdate(
+        string $keyId,
+        string $signatureAlgorithm,
+        string $region = 'eu-central-1',
+        string $version = 'latest'
+    ): void {
         $kmsClient = new KmsClient([
             'region' => $region,
             'version' => $version,
@@ -77,16 +80,20 @@ class UpdaterTest extends TestCase
     }
 
     /**
-     * @param $keyId
-     * @param $signatureAlgorithm
+     * @param string $keyId
+     * @param string $signatureAlgorithm
      * @param string $region
      * @param string $version
      * @throws \SetaPDF_Signer_Asn1_Exception
      * @throws \SetaPDF_Signer_Exception
      * @dataProvider updaterProvider
      */
-    public function testCertificateUpdate($keyId, $signatureAlgorithm, $region = 'eu-central-1', $version = 'latest')
-    {
+    public function testCertificateUpdate(
+        string $keyId,
+        string $signatureAlgorithm,
+        string $region = 'eu-central-1',
+        string $version = 'latest'
+    ): void {
         $kmsClient = new KmsClient([
             'region' => $region,
             'version' => $version,
@@ -102,7 +109,7 @@ class UpdaterTest extends TestCase
         $this->assertTrue($certificate->verify());
     }
 
-    public function updateWithInvalidAlgorithmProvider()
+    public function updateWithInvalidAlgorithmProvider(): array
     {
         return [
             ['3d444f18-0034-4c7d-8215-53dc176ee0bc', 'ECDSA_SHA_256'],
@@ -113,19 +120,19 @@ class UpdaterTest extends TestCase
     }
 
     /**
-     * @param $keyId
-     * @param $signatureAlgorithm
+     * @param string $keyId
+     * @param string $signatureAlgorithm
      * @param string $region
      * @param string $version
      * @throws Exception
      * @dataProvider updateWithInvalidAlgorithmProvider
      */
     public function testUpdaterWithInvalidAlgorithm(
-        $keyId,
-        $signatureAlgorithm,
-        $region = 'eu-central-1',
-        $version = 'latest'
-    ) {
+        string $keyId,
+        string $signatureAlgorithm,
+        string $region = 'eu-central-1',
+        string $version = 'latest'
+    ): void {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage(\sprintf('Signature algorithm "%s"', $signatureAlgorithm));
 

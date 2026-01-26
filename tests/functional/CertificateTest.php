@@ -8,10 +8,11 @@ use setasign\CloudKmsCsr\Certificate;
 class CertificateTest extends TestCase
 {
     /**
-     * @throws \SetaPDF_Signer_Asn1_Exception
-     * @throws \SetaPDF_Signer_Exception
+     * @return void
+     * @throws \setasign\SetaPDF2\Signer\Asn1\Exception
+     * @throws \setasign\SetaPDF2\Signer\Exception
      */
-    public function testCreate()
+    public function testCreate(): void
     {
         $certificate = Certificate::create([
             'commonName' => 'Developer',

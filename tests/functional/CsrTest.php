@@ -4,15 +4,10 @@ namespace setasign\CloudKmsCsr\tests\functional;
 
 use PHPUnit\Framework\TestCase;
 use setasign\CloudKmsCsr\Csr;
-use setasign\CloudKmsCsr\Exception;
 
 class CsrTest extends TestCase
 {
-    /**
-     * @return array
-     * @throws \SetaPDF_Signer_Asn1_Exception
-     */
-    public function verifyDataProvider()
+    public function verifyDataProvider(): array
     {
         return [
             // rsassaPss, 2048 bits, sha-256
@@ -70,12 +65,11 @@ MIIE5jCCAs4CAQAwdTEZMBcGA1UEAxMQRGVtby1FbnZpcm9ubWVudDEfMB0GA1UECgwWU2V0YXNpZ24g
     }
 
     /**
-     * @param $csrString
-     * @throws \SetaPDF_Signer_Asn1_Exception
-     * @throws Exception
+     * @param string $csrString
      * @dataProvider verifyDataProvider
+     * @throws \setasign\SetaPDF2\Signer\Exception
      */
-    public function testVerify($csrString)
+    public function testVerify(string $csrString): void
     {
         $csr = new Csr($csrString);
         $this->assertTrue($csr->verify());

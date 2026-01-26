@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @copyright Copyright (c) 2021 Setasign GmbH & Co. KG (https://www.setasign.com)
+ * @copyright Copyright (c) 2026 Setasign GmbH & Co. KG (https://www.setasign.com)
  * @license   http://opensource.org/licenses/mit-license The MIT License
  */
 
@@ -10,30 +10,15 @@ namespace setasign\CloudKmsCsr\AwsKMS;
 use Aws\Kms\KmsClient;
 use setasign\CloudKmsCsr\Exception;
 use setasign\CloudKmsCsr\UpdaterInterface;
-use SetaPDF_Signer_Digest as Digest;
-use SetaPDF_Signer_Pem as Pem;
+use setasign\SetaPDF2\Signer\Digest;
+use setasign\SetaPDF2\Signer\PemHelper;
 
 class Updater implements UpdaterInterface
 {
-    /**
-     * @var KmsClient
-     */
-    protected $kmsClient;
-
-    /**
-     * @var string
-     */
-    protected $keyId;
-
-    /**
-     * @var string|null
-     */
-    protected $signatureAlgorithm;
-
-    /**
-     * @var
-     */
-    protected $publicKey;
+    protected KmsClient $kmsClient;
+    protected string $keyId;
+    protected ?string $signatureAlgorithm;
+    protected ?\Aws\Result $publicKey = null;
 
     /**
      * @param string $keyId
@@ -85,22 +70,12 @@ class Updater implements UpdaterInterface
     public function getDigest(): string
     {
         $algorithm = $this->getSignatureAlgorithm();
-        switch ($algorithm) {
-            case 'RSASSA_PKCS1_V1_5_SHA_256':
-            case 'RSASSA_PSS_SHA_256':
-            case 'ECDSA_SHA_256':
-                return Digest::SHA_256;
-            case 'RSASSA_PKCS1_V1_5_SHA_384':
-            case 'RSASSA_PSS_SHA_384':
-            case 'ECDSA_SHA_384':
-                return Digest::SHA_384;
-            case 'RSASSA_PKCS1_V1_5_SHA_512':
-            case 'RSASSA_PSS_SHA_512':
-            case 'ECDSA_SHA_512':
-                return Digest::SHA_512;
-            default:
-                throw new Exception('Unknown algorithm "%s".', $algorithm);
-        }
+        return match ($algorithm) {
+            'RSASSA_PKCS1_V1_5_SHA_256', 'RSASSA_PSS_SHA_256', 'ECDSA_SHA_256' => Digest::SHA_256,
+            'RSASSA_PKCS1_V1_5_SHA_384', 'RSASSA_PSS_SHA_384', 'ECDSA_SHA_384' => Digest::SHA_384,
+            'RSASSA_PKCS1_V1_5_SHA_512', 'RSASSA_PSS_SHA_512', 'ECDSA_SHA_512' => Digest::SHA_512,
+            default => throw new Exception('Unknown algorithm "%s".', $algorithm),
+        };
     }
 
     /**
@@ -110,22 +85,18 @@ class Updater implements UpdaterInterface
     public function getAlgorithm(): string
     {
         $algorithm = $this->getSignatureAlgorithm();
-        switch ($algorithm) {
-            case 'RSASSA_PKCS1_V1_5_SHA_256':
-            case 'RSASSA_PKCS1_V1_5_SHA_384':
-            case 'RSASSA_PKCS1_V1_5_SHA_512':
-                return Digest::RSA_ALGORITHM;
-            case 'RSASSA_PSS_SHA_256':
-            case 'RSASSA_PSS_SHA_384':
-            case 'RSASSA_PSS_SHA_512':
-                return Digest::RSA_PSS_ALGORITHM;
-            case 'ECDSA_SHA_256':
-            case 'ECDSA_SHA_384':
-            case 'ECDSA_SHA_512':
-                return Digest::ECDSA_ALGORITHM;
-            default:
-                throw new Exception('Unknown algorithm "%s".', $algorithm);
-        }
+        return match ($algorithm) {
+            'RSASSA_PKCS1_V1_5_SHA_256',
+            'RSASSA_PKCS1_V1_5_SHA_384',
+            'RSASSA_PKCS1_V1_5_SHA_512' => Digest::RSA_ALGORITHM,
+            'RSASSA_PSS_SHA_256',
+            'RSASSA_PSS_SHA_384',
+            'RSASSA_PSS_SHA_512' => Digest::RSA_PSS_ALGORITHM,
+            'ECDSA_SHA_256',
+            'ECDSA_SHA_384',
+            'ECDSA_SHA_512' => Digest::ECDSA_ALGORITHM,
+            default => throw new Exception('Unknown algorithm "%s".', $algorithm),
+        };
     }
 
     /**
@@ -137,16 +108,12 @@ class Updater implements UpdaterInterface
         // E.g.: "PKCS #1 v2.2, Section 8.1, RSA signature with PSS padding using SHA-256 for both the message
         // digest and the MGF1 mask generation function along with a 256-bit salt"
         $algorithm = $this->getSignatureAlgorithm();
-        switch ($algorithm) {
-            case 'RSASSA_PSS_SHA_256':
-                return 256 / 8;
-            case 'RSASSA_PSS_SHA_384':
-                return 384 / 8;
-            case 'RSASSA_PSS_SHA_512':
-                return 512 / 8;
-            default:
-                throw new \BadMethodCallException('The key does not support PSS padding.');
-        }
+        return match ($algorithm) {
+            'RSASSA_PSS_SHA_256' => 256 / 8,
+            'RSASSA_PSS_SHA_384' => 384 / 8,
+            'RSASSA_PSS_SHA_512' => 512 / 8,
+            default => throw new \BadMethodCallException('The key does not support PSS padding.'),
+        };
     }
 
     /**
@@ -170,7 +137,7 @@ class Updater implements UpdaterInterface
      */
     public function getPublicKey(): string
     {
-        return Pem::encode($this->ensurePublicKey()->get('PublicKey'), 'PUBLIC KEY');
+        return PemHelper::encode($this->ensurePublicKey()->get('PublicKey'), 'PUBLIC KEY');
     }
 
     /**
@@ -181,7 +148,7 @@ class Updater implements UpdaterInterface
     {
         $result = $this->kmsClient->sign([
             'KeyId' => $this->keyId,
-            'Message' => hash($this->getDigest(), $data, true),
+            'Message' => \hash($this->getDigest(), $data, true),
             'MessageType' => 'DIGEST',
             'SigningAlgorithm' => $this->getSignatureAlgorithm()
         ]);

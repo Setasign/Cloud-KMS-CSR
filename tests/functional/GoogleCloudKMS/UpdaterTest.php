@@ -10,7 +10,7 @@ use setasign\CloudKmsCsr\Csr;
 
 class UpdaterTest extends TestCase
 {
-    public function updaterProvider()
+    public function updaterProvider(): array
     {
         return [
             ['Software-RSA-2048-PKCS1-SHA-256'],
@@ -22,12 +22,11 @@ class UpdaterTest extends TestCase
     }
 
     /**
-     * @param $keyId
-     * @throws \SetaPDF_Signer_Asn1_Exception
-     * @throws Exception
+     * @param string $keyId
      * @dataProvider updaterProvider
+     * @throws \setasign\SetaPDF2\Signer\Exception
      */
-    public function testCsrUpdate($keyId)
+    public function testCsrUpdate(string $keyId): void
     {
         $projectId = 'kms-test-and-development';
         $locationId = 'europe-west3';
@@ -49,12 +48,13 @@ class UpdaterTest extends TestCase
     }
 
     /**
-     * @param $keyId
+     * @param string $keyId
      * @throws \SetaPDF_Signer_Asn1_Exception
-     * @throws \SetaPDF_Signer_Exception
+     * @throws \setasign\SetaPDF2\Signer\Asn1\Exception
+     * @throws \setasign\SetaPDF2\Signer\Exception
      * @dataProvider updaterProvider
      */
-    public function testCertificateUpdate($keyId)
+    public function testCertificateUpdate(string $keyId): void
     {
         $projectId = 'kms-test-and-development';
         $locationId = 'europe-west3';

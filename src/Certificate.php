@@ -1,15 +1,16 @@
 <?php
 
 /**
- * @copyright Copyright (c) 2021 Setasign GmbH & Co. KG (https://www.setasign.com)
+ * @copyright Copyright (c) 2026 Setasign GmbH & Co. KG (https://www.setasign.com)
  * @license   http://opensource.org/licenses/mit-license The MIT License
  */
 
 namespace setasign\CloudKmsCsr;
 
-use SetaPDF_Signer_Asn1_Element as Asn1Element;
+use setasign\SetaPDF2\Signer\Asn1\Element as Asn1Element;
+use setasign\SetaPDF2\Signer\Asn1\Exception;
 
-class Certificate extends \SetaPDF_Signer_X509_Certificate
+class Certificate extends \setasign\SetaPDF2\Signer\X509\Certificate
 {
     use HelperTrait;
 
@@ -25,8 +26,8 @@ class Certificate extends \SetaPDF_Signer_X509_Certificate
      * @param int $serial
      * @param array $configargs
      * @param array|null $extraattribs
-     * @return Certificate
-     * @throws \SetaPDF_Signer_Asn1_Exception
+     * @return self
+     * @throws Exception
      */
     public static function create(
         array $dn,
@@ -34,7 +35,7 @@ class Certificate extends \SetaPDF_Signer_X509_Certificate
         int   $serial = 0,
         array $configargs = [],
         ?array $extraattribs = null
-    ): Certificate
+    ): self
     {
         $configargs = \array_merge(
             [
@@ -83,7 +84,7 @@ class Certificate extends \SetaPDF_Signer_X509_Certificate
      * @param UpdaterInterface $updater
      * @throws Exception
      * @throws \SetaPDF_Signer_Asn1_Exception
-     * @throws \SetaPDF_Signer_Exception
+     * @throws \setasign\SetaPDF2\Signer\Exception
      */
     public function update(UpdaterInterface $updater): void
     {
