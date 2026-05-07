@@ -28,7 +28,7 @@
         "aws/aws-sdk-php": "^3.368",
         "setasign/setapdf-signer": "^2.47",
         "google/cloud-kms": "^1.23",
-        "phpseclib/phpseclib": "^3.0"
+        "phpseclib/phpseclib": "^3.0.52"
     },
     "require-dev": {
         "phpunit/phpunit": "^8"
