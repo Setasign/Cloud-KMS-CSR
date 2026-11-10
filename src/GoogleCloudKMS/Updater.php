@@ -7,11 +7,13 @@
 
 namespace setasign\CloudKmsCsr\GoogleCloudKMS;
 
+use Google\Cloud\Kms\V1\AsymmetricSignRequest;
+use Google\Cloud\Kms\V1\Client\KeyManagementServiceClient;
+use Google\Cloud\Kms\V1\GetPublicKeyRequest;
 use Google\Cloud\Kms\V1\PublicKey as GcKmsPublicKey;
 use setasign\CloudKmsCsr\Exception;
 use setasign\CloudKmsCsr\UpdaterInterface;
 use Google\ApiCore\ApiException;
-use Google\Cloud\Kms\V1\KeyManagementServiceClient;
 use Google\Cloud\Kms\V1\CryptoKeyVersion\CryptoKeyVersionAlgorithm;
 use Google\Cloud\Kms\V1\Digest as KmsDigest;
 use setasign\SetaPDF2\Signer\Digest;
@@ -123,7 +125,8 @@ class Updater implements UpdaterInterface
     protected function ensurePublicKey(): GcKmsPublicKey
     {
         if ($this->publicKey === null) {
-            $this->publicKey = $this->kmsClient->getPublicKey($this->keyVersionName);
+            $request = (new GetPublicKeyRequest())->setName($this->keyVersionName);
+            $this->publicKey = $this->kmsClient->getPublicKey($request);
         }
 
         return $this->publicKey;
@@ -159,7 +162,11 @@ class Updater implements UpdaterInterface
                 break;
         }
 
-        $signResponse = $this->kmsClient->asymmetricSign($this->keyVersionName, $digestValue);
+        $request = (new AsymmetricSignRequest)
+            ->setName($this->keyVersionName)
+            ->setDigest($digestValue);
+
+        $signResponse = $this->kmsClient->asymmetricSign($request);
 
         return $signResponse->getSignature();
     }

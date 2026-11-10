@@ -29,7 +29,7 @@ Add following to your composer.json:
 ```json
 {
     "require": {
-        "setasign/cloud-kms-csr": "^1.0"
+        "setasign/cloud-kms-csr": "^2.0"
     },
     "repositories": [
         {
